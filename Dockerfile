@@ -13,5 +13,4 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 ENV vulnerable=1
 ENV tokentimetolive=60
 
-ENTRYPOINT ["python"]
-CMD ["app.py"]
+CMD ["sh", "-c", "python app.py & sleep 2 && curl -f http://127.0.0.1:5000/createdb && wait"]
