@@ -32,14 +32,20 @@ jobs:
       - name: Start VAmPI application
         run: |
           python app.py &
+          vampi_ready=false
           for i in $(seq 1 30); do
             if curl -sf http://localhost:5000/ > /dev/null 2>&1; then
               echo "VAmPI is ready"
+              vampi_ready=true
               break
             fi
             sleep 2
           done
-          curl -s http://localhost:5000/createdb
+          if [ "$vampi_ready" != "true" ]; then
+            echo "ERROR: VAmPI failed to start within 60 seconds"
+            exit 1
+          fi
+          curl -sf http://localhost:5000/createdb
           echo "Database initialized"
 
       - name: Install Bright CLI
