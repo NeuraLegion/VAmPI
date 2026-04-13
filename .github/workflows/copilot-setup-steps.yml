@@ -1,0 +1,48 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+          cache: "pip"
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start VAmPI application
+        run: |
+          python app.py &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5000/ > /dev/null 2>&1; then
+              echo "VAmPI is ready"
+              break
+            fi
+            sleep 2
+          done
+          curl -s http://localhost:5000/createdb
+          echo "Database initialized"
+
+      - name: Install Bright CLI
+        run: |
+          npm install -g @brightsec/cli
+          bright-cli --version
